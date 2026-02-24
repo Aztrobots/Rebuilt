@@ -15,7 +15,10 @@ public class StartShooter extends Command {
 
     @Override
     public void execute() {
-        sub.setRPM(rpm, sub.rsMotor);
+        //sub.setRPM(rpm, sub.rsMotor);
+        sub.setRPM(sub.calculateShooterRPM("limelight", 
+        11.5, 0, 72), 
+        sub.rsMotor);
     }
 
     @Override

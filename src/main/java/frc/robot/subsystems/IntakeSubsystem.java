@@ -32,6 +32,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
         configureMotor(liMotor, InvertedValue.CounterClockwise_Positive);
         configureMotor(riMotor, InvertedValue.CounterClockwise_Positive);
+        configureMotor(intakeMotor, InvertedValue.Clockwise_Positive);
         liMotor.setControl(new Follower(riMotor.getDeviceID(), MotorAlignmentValue.Aligned));
     }
 
@@ -70,6 +71,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void setRPM(double rpm, TalonFX motor) {
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
+    }
+
+    public void setSpeed(double speed, TalonFX motor) {
+        motor.set(speed);
     }
 
     public void setPosition(double position) {

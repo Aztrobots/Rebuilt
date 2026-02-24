@@ -45,4 +45,10 @@ public class Constants {
             }
         }
     }
+
+    public class Mechanisms {
+        public static double shooterMountingAngle = 50.0; //degrees
+        public static final double shooterMountingHeight = 0; //meters
+        public static final double shooterWheelRadius = 0; //meters
+    }
 }

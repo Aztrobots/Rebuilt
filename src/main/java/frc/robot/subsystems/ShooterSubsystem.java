@@ -21,10 +21,14 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.LimelightHelpers;
+
+import frc.robot.Constants.Mechanisms;
 
 public class ShooterSubsystem extends SubsystemBase {
     public final TalonFX bwMotor, twMotor, rsMotor;
@@ -88,7 +92,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void setRPM(double rpm, TalonFX motor) {
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
-    }
+    }   
 
     public void setWristPosition(double position) {
         twMotor.setControl(posvol.withPosition(position));
@@ -96,6 +100,48 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public double getWristPosition() {
         return twMotor.getPosition().getValueAsDouble();
+    }
+
+    public double calculateRPMWithITM(String limelightName, double distance) {
+        final InterpolatingDoubleTreeMap table = new InterpolatingDoubleTreeMap();
+
+         //distance , rpm
+        table.put(0.0 , 0.0);
+        table.put(0.0 , 0.0);
+        table.put(0.0 , 0.0);
+        table.put(0.0 , 0.0);
+        table.put(0.0 , 0.0);
+
+        return table.get(distance);
+    }
+
+     public double calculateShooterRPM(
+        String limelightName, 
+        double cameraHeight,
+        double cameraMountingAngle,
+        double hubHeight
+        ) {
+            double targetAngle = LimelightHelpers.getTY(limelightName);
+            double shooterRPM = 0.0;
+            
+            double distanceToTarget = (1.8288 - cameraHeight) / Math.tan((cameraMountingAngle + targetAngle) * (Math.PI / 180.0));
+
+            double velocity = Math.sqrt(
+                (9.81 * (distanceToTarget * distanceToTarget))
+                /
+                (2 * Math.pow(Math.cos(Mechanisms.shooterMountingAngle), 2) 
+                * 
+                (distanceToTarget * Math.tan(Mechanisms.shooterMountingAngle) - (hubHeight - Mechanisms.shooterMountingHeight)))
+            );
+
+            
+            //if (Math.max(distanceToTarget, 2.2) == 2.2) shooterRPM = 1890;
+            //else 
+            shooterRPM = (velocity / (2 * Math.PI * Mechanisms.shooterWheelRadius) * 60);
+            //double power = MathUtil.clamp(shooterRPM, 0.0, 1.0);
+            
+            
+            return shooterRPM;
     }
 
     public boolean isVelocityWithinTolerance() {
