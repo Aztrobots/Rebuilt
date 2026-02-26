@@ -1,5 +1,7 @@
+//Package
 package frc.robot.subsystems;
 
+//Imports
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
@@ -19,12 +21,17 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+
+//Create class
 public class IntakeSubsystem extends SubsystemBase {
+
+    //Atributes
     public final TalonFX liMotor, riMotor, intakeMotor;
     private final VelocityVoltage velVol = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut volOut = new VoltageOut(0);
     private final PositionVoltage posvol = new PositionVoltage(0);
 
+    //Constructor
     public IntakeSubsystem() {
         liMotor = new TalonFX(0);
         riMotor = new TalonFX(0);
@@ -36,6 +43,7 @@ public class IntakeSubsystem extends SubsystemBase {
         liMotor.setControl(new Follower(riMotor.getDeviceID(), MotorAlignmentValue.Aligned));
     }
 
+    //Consfigure motor method
     private void configureMotor(TalonFX motor, InvertedValue invertDirection) {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
@@ -65,6 +73,7 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.getConfigurator().apply(config);
     }
 
+    //Another methods
     public void setPercentOutput(double percentOutput, TalonFX motor) {
         motor.setControl(volOut.withOutput(Volts.of(percentOutput * 12)));
     }

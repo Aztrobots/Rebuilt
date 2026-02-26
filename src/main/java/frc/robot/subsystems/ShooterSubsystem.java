@@ -1,8 +1,10 @@
+//Package
 package frc.robot.subsystems;
+
+//Imports
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -22,13 +24,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 
 import frc.robot.Constants.Mechanisms;
 
+//Create class
 public class ShooterSubsystem extends SubsystemBase {
     public final TalonFX bwMotor, twMotor, rsMotor;
     private final List<TalonFX> motors;
@@ -36,6 +37,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final VoltageOut volOut = new VoltageOut(0);
     private final PositionVoltage posvol = new PositionVoltage(0);
 
+    //Constructor
     public ShooterSubsystem() {
         bwMotor = new TalonFX(0);
         twMotor = new TalonFX(0);
@@ -51,7 +53,8 @@ public class ShooterSubsystem extends SubsystemBase {
         bwMotor.setControl(new Follower(twMotor.getDeviceID(), MotorAlignmentValue.Aligned));
         //lsMotor.setControl(new Follower(rsMotor.getDeviceID(), MotorAlignmentValue.Aligned));
     }
-
+    
+    //Configure motor
     private void configureMotor(TalonFX motor, InvertedValue invertDirection) {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
@@ -71,7 +74,7 @@ public class ShooterSubsystem extends SubsystemBase {
                     .withSupplyCurrentLimitEnable(true)
             );
             /* .withSlot0(
-                new Slot0Configs()
+                new Slowt0Configs()
                     .withKP(0.5)
                     .withKI(2)
                     .withKD(0)
@@ -105,7 +108,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public double calculateRPMWithITM(String limelightName, double distance) {
         final InterpolatingDoubleTreeMap table = new InterpolatingDoubleTreeMap();
 
-         //distance , rpm
+        //    distance    ,   rpm
         table.put(0.0 , 0.0);
         table.put(0.0 , 0.0);
         table.put(0.0 , 0.0);
