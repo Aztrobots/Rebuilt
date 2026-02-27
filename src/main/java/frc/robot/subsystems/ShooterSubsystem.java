@@ -1,7 +1,4 @@
-//Package
 package frc.robot.subsystems;
-
-//Imports
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
@@ -11,6 +8,7 @@ import java.util.List;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.Follower;
@@ -26,35 +24,30 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
-
 import frc.robot.Constants.Mechanisms;
 
-//Create class
 public class ShooterSubsystem extends SubsystemBase {
-    public final TalonFX bwMotor, twMotor, rsMotor;
+    // IMPORTANTE: Cambia estos IDs (1, 2, 3) por los que tengas en Phoenix Tuner X
+    public final TalonFX bwMotor = new TalonFX(1);
+    public final TalonFX twMotor = new TalonFX(2);
+    public final TalonFX rsMotor = new TalonFX(3);
+    
     private final List<TalonFX> motors;
     private final VelocityVoltage velVol = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut volOut = new VoltageOut(0);
     private final PositionVoltage posvol = new PositionVoltage(0);
 
-    //Constructor
     public ShooterSubsystem() {
-        bwMotor = new TalonFX(0);
-        twMotor = new TalonFX(0);
-        //lsMotor = new TalonFX(0);
-        rsMotor = new TalonFX(0);
         motors = List.of(bwMotor, twMotor, rsMotor);
 
         configureMotor(bwMotor, InvertedValue.Clockwise_Positive);
         configureMotor(twMotor, InvertedValue.Clockwise_Positive);
-        //configureMotor(lsMotor, null);
         configureMotor(rsMotor, InvertedValue.CounterClockwise_Positive);
 
+        // Hacemos que bwMotor siga a twMotor automáticamente
         bwMotor.setControl(new Follower(twMotor.getDeviceID(), MotorAlignmentValue.Aligned));
-        //lsMotor.setControl(new Follower(rsMotor.getDeviceID(), MotorAlignmentValue.Aligned));
     }
-    
-    //Configure motor
+
     private void configureMotor(TalonFX motor, InvertedValue invertDirection) {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
@@ -72,25 +65,30 @@ public class ShooterSubsystem extends SubsystemBase {
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(70))
                     .withSupplyCurrentLimitEnable(true)
+            )
+            // SLOT 0 DESCOMENTADO Y CONFIGURADO CON LOS CÁLCULOS
+            .withSlot0(
+                new Slot0Configs()
+                    .withKP(0.11)  // Proporcional para recuperar velocidad
+                    .withKI(0.0)
+                    .withKD(0.0)
+                    .withKV(0.12)  // Feedforward (12V / 100 RPS)
+                    .withKS(0.2)   // Fricción estática (romper inercia)
             );
-            /* .withSlot0(
-                new Slowt0Configs()
-                    .withKP(0.5)
-                    .withKI(2)
-                    .withKD(0)
-                    .withKV(12.0 / RPM.of(6000).in(RotationsPerSecond)) // 12 volts when requesting max RPS
-            );*/
         
         motor.getConfigurator().apply(config);
     }
 
-    //Another methods
     public void stop() {
         for (final TalonFX motor : motors) motor.stopMotor();
     }
 
     public void setPercentOutput(double percentOutput, TalonFX motor) {
         motor.setControl(volOut.withOutput(Volts.of(percentOutput * 12)));
+    }
+
+    public void set(double speed) {
+        rsMotor.set(speed);
     }
 
     public void setRPM(double rpm, TalonFX motor) {
@@ -108,17 +106,17 @@ public class ShooterSubsystem extends SubsystemBase {
     public double calculateRPMWithITM(String limelightName, double distance) {
         final InterpolatingDoubleTreeMap table = new InterpolatingDoubleTreeMap();
 
-        //    distance    ,   rpm
-        table.put(0.0 , 0.0);
-        table.put(0.0 , 0.0);
-        table.put(0.0 , 0.0);
-        table.put(0.0 , 0.0);
-        table.put(0.0 , 0.0);
+        // AQUÍ DEBES LLENAR TUS PUNTOS EMPÍRICOS (Distancia en metros, RPM)
+        // table.put(1.5, 2500.0);
+        // table.put(2.5, 3200.0);
+        // table.put(4.0, 4100.0);
+        
+        table.put(0.0 , 0.0); // Borra esto cuando pongas los reales
 
         return table.get(distance);
     }
 
-     public double calculateShooterRPM(
+    public double calculateShooterRPM(
         String limelightName, 
         double cameraHeight,
         double cameraMountingAngle,
@@ -133,17 +131,10 @@ public class ShooterSubsystem extends SubsystemBase {
                 (9.81 * (distanceToTarget * distanceToTarget))
                 /
                 (2 * Math.pow(Math.cos(Mechanisms.shooterMountingAngle), 2) 
-                * 
-                (distanceToTarget * Math.tan(Mechanisms.shooterMountingAngle) - (hubHeight - Mechanisms.shooterMountingHeight)))
+                * (distanceToTarget * Math.tan(Mechanisms.shooterMountingAngle) - (hubHeight - Mechanisms.shooterMountingHeight)))
             );
 
-            
-            //if (Math.max(distanceToTarget, 2.2) == 2.2) shooterRPM = 1890;
-            //else 
             shooterRPM = (velocity / (2 * Math.PI * Mechanisms.shooterWheelRadius) * 60);
-            //double power = MathUtil.clamp(shooterRPM, 0.0, 1.0);
-            
-            
             return shooterRPM;
     }
 
@@ -152,7 +143,8 @@ public class ShooterSubsystem extends SubsystemBase {
             final boolean isInVelocityMode = motor.getAppliedControl().equals(velVol);
             final AngularVelocity currentVelocity = motor.getVelocity().getValue();
             final AngularVelocity targetVelocity = velVol.getVelocityMeasure();
-            return isInVelocityMode && currentVelocity.isNear(targetVelocity, RPM.of(100));
+            // Aumenté un poco la tolerancia a 150 RPM, 100 a veces es muy estricto para FRC y hace stutter el comando de disparar
+            return isInVelocityMode && currentVelocity.isNear(targetVelocity, RPM.of(150)); 
         });
     }
 }

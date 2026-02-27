@@ -3,25 +3,27 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.ShooterSubsystem;
 
-public class StartShooter extends Command {
+public class WristSpeed extends Command {
     private final ShooterSubsystem sub;
-    private final double rpm;
+    private final double speed;
 
-    public StartShooter(ShooterSubsystem sub, double rpm) {
+    public WristSpeed(ShooterSubsystem sub, double speed) {
         this.sub = sub;
-        this.rpm = rpm;
+        this.speed = speed;
         addRequirements(sub);
     }
 
     @Override
+    public void initialize() {}
+
+    @Override
     public void execute() {
-        sub.setRPM(rpm, sub.rsMotor);
-        //sub.setRPM(sub.calculateShooterRPM("limelight", 11.5, 0, 72), sub.rsMotor);
+        sub.set(speed);
     }
 
     @Override
     public void end(boolean interrupted) {
-        sub.stop();
+        sub.set(0);
     }
 
     @Override

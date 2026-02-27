@@ -17,6 +17,9 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.Feeder;
 import frc.robot.commands.IntakePos;
+import frc.robot.commands.StartShooter;
+import frc.robot.commands.WristPos;
+import frc.robot.commands.WristSpeed;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -90,9 +93,17 @@ public class RobotContainer {
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.start().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+    
+        joystick.rightTrigger().whileTrue(new StartShooter(shooterSub, 300));
+        joystick.leftTrigger().whileTrue(new Feeder(intakeSub, 0.75));
+        joystick.rightBumper().onTrue(new IntakePos(intakeSub, 1));
+        joystick.leftBumper().onTrue(new IntakePos(intakeSub, 0));
+
+        joystick.b().whileTrue(new WristSpeed(shooterSub, 0.25));
+        joystick.a().whileTrue(new WristSpeed(shooterSub, -0.25));
     }
 
     public Command getAutonomousCommand() {

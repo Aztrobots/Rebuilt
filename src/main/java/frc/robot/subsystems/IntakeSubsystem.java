@@ -4,10 +4,12 @@ package frc.robot.subsystems;
 //Imports
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.Follower;
@@ -26,7 +28,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class IntakeSubsystem extends SubsystemBase {
 
     //Atributes
-    public final TalonFX liMotor, riMotor, intakeMotor;
+    public TalonFX liMotor, riMotor, intakeMotor;
     private final VelocityVoltage velVol = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut volOut = new VoltageOut(0);
     private final PositionVoltage posvol = new PositionVoltage(0);
@@ -61,19 +63,22 @@ public class IntakeSubsystem extends SubsystemBase {
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(70))
                     .withSupplyCurrentLimitEnable(true)
-            );
-            /* .withSlot0(
+            )
+            .withSlot0(
                 new Slot0Configs()
                     .withKP(0.5)
                     .withKI(2)
                     .withKD(0)
                     .withKV(12.0 / RPM.of(6000).in(RotationsPerSecond)) // 12 volts when requesting max RPS
-            );*/
+            );
         
         motor.getConfigurator().apply(config);
     }
 
-    //Another methods
+    public void stop() {
+        intakeMotor.set(0);
+    }
+
     public void setPercentOutput(double percentOutput, TalonFX motor) {
         motor.setControl(volOut.withOutput(Volts.of(percentOutput * 12)));
     }
@@ -82,8 +87,8 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
     }
 
-    public void setSpeed(double speed, TalonFX motor) {
-        motor.set(speed);
+    public void setSpeed(double speed) {
+        intakeMotor.set(speed);
     }
 
     public void setPosition(double position) {
