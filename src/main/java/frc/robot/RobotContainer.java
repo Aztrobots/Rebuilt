@@ -8,15 +8,12 @@ import static edu.wpi.first.units.Units.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -28,16 +25,13 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.Indexer;
 import frc.robot.commands.IntakePos;
+import frc.robot.commands.ShootSequence;
 import frc.robot.commands.StartIntake;
-import frc.robot.commands.StartShooter;
-import frc.robot.commands.WristPos;
-import frc.robot.commands.WristSpeed;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.commands.ATTRotation;
-import frc.robot.commands.AprilTagTracker;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.Constants.AprilTags;
 import frc.robot.Constants.AprilTags.BlueAlliance;
 import frc.robot.Constants.AprilTags.RedAlliance;
@@ -61,12 +55,17 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
+    private final CommandXboxController joystick2 = new CommandXboxController(1);
     private final IntakeSubsystem intakeSub = new IntakeSubsystem();
     private final ShooterSubsystem shooterSub = new ShooterSubsystem();
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     private final String limelightName = Constants.Limelights.shooterLimelightName;
+
+    // VisionSubsystem: fusiona pose de Limelight con odometría del swerve cada ciclo (~20 ms).
+    // No requiere bindings — WPILib llama a periodic() automáticamente al estar registrado.
+    private final VisionSubsystem visionSub = new VisionSubsystem(drivetrain, limelightName);
     private static boolean isCalculationEnabled = true;
 
     private final PIDController rotationPID = new PIDController(
@@ -128,26 +127,48 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
     
-        joystick.rightTrigger().whileTrue(Commands.parallel(
-            new StartShooter(shooterSub, 0.75, isCalculationEnabled),
-            new ATTRotation(drivetrain, drive, rotationPID, MaxAngularRate, limelightName)
-                .onlyIf(() -> isCalculationEnabled)
-        )); 
+        // --- Piloto 1 (joystick) ---
         joystick.leftTrigger().whileTrue(new StartIntake(intakeSub, 0.75));
+        joystick.rightBumper().onTrue(new IntakePos(intakeSub, 1));
+        joystick.leftBumper().onTrue(new IntakePos(intakeSub, 0));
+        joystick.x().whileTrue(new Indexer(intakeSub, 0.5));
+        joystick.b().whileTrue(new Indexer(intakeSub, -0.5));
 
-        //movimiento en circunferencia...
-        joystick.rightBumper().onTrue(
+        // --- Piloto 2 (joystick2) ---
+        // Disparo con auto-aim al AprilTag — TODO: verificar RPM y ángulo en robot físico
+        joystick2.rightTrigger().whileTrue(new ShootSequence(
+            shooterSub, intakeSub,
+            Constants.Shooter.SHOOT_RPM,
+            Constants.Shooter.WRIST_ANGLE_SHOOT,
+            true,
+            drivetrain, drive, rotationPID, MaxAngularRate, limelightName,
+            () -> -joystick.getLeftY() * MaxSpeed,
+            () -> -joystick.getLeftX() * MaxSpeed
+        ));
+
+        // Disparo manual sin auto-aim: respaldo cuando el auto-aim falla o se pierde el heading.
+        // Usa los mismos RPM y angulo que el disparo automatico — el piloto es responsable de apuntar.
+        joystick2.leftTrigger().whileTrue(new ShootSequence(
+            shooterSub, intakeSub,
+            Constants.Shooter.SHOOT_RPM,
+            Constants.Shooter.WRIST_ANGLE_SHOOT,
+            false,
+            drivetrain, drive, rotationPID, MaxAngularRate, limelightName,
+            () -> -joystick.getLeftY() * MaxSpeed,
+            () -> -joystick.getLeftX() * MaxSpeed
+        ));
+
+        // Toggle de cálculo de auto-aim (movido a piloto 2)
+        joystick2.rightBumper().onTrue(
             Commands.runOnce(() -> isCalculationEnabled = !isCalculationEnabled)
         );
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
-        joystick.y().onTrue(new IntakePos(intakeSub, 1)); //definir posiciones
-        joystick.x().onTrue(new IntakePos(intakeSub, 0));
-        //cambiar por flechas
-        joystick.b().whileTrue(new WristSpeed(shooterSub, 0.075));
-        joystick.a().whileTrue(new WristSpeed(shooterSub, -0.075));  
 
         System.out.println("PRUEBA");
+
+        // Publica el estado del HUB en SmartDashboard continuamente para monitoreo en tiempo real.
+        new edu.wpi.first.wpilibj2.command.button.Trigger(() -> true).whileTrue(Commands.run(() ->
+            SmartDashboard.putBoolean("HUB/Active", isHubActive())
+        ));
     }
 
     public Command getAutonomousCommand() {

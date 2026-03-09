@@ -5,18 +5,15 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
-import frc.robot.RobotContainer;
-import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class StartShooter extends Command {
+    // Solo se usa el subsistema del shooter pasado por el constructor
     private final ShooterSubsystem sub;
     private final double speed;
     private boolean isCalculationEnabled;
-    private final RobotContainer m_RobotContainer = new RobotContainer();
-    private final IntakeSubsystem intakeSub = new IntakeSubsystem();
     private static double time = 0.0;
-    
+
     public StartShooter(ShooterSubsystem sub, double speed, boolean isCalculationEnabled) {
         this.sub = sub;
         this.speed = speed;
@@ -33,17 +30,21 @@ public class StartShooter extends Command {
     public void execute() {
         String limelightName = Constants.Limelights.shooterLimelightName;
 
-        intakeSub.setIndexerSpeed(0.75);
+        // TODO: se necesita recibir un IndexerSubsystem como parámetro en el constructor para poder llamar setIndexerSpeed(0.75)
+        // intakeSub.setIndexerSpeed(0.75);
 
         if (time >= 0.5) {
             if (isCalculationEnabled) {
-                Pose3d targetLocation = m_RobotContainer.getClosestAprilTag().getTargetPose_CameraSpace();
-                double tz = targetLocation.getZ();
+                // TODO: se necesita integración de visión; se requiere pasar RobotContainer o AprilTagTracker al constructor
+                // Pose3d targetLocation = m_RobotContainer.getClosestAprilTag().getTargetPose_CameraSpace();
+                // double tz = targetLocation.getZ();
+                // if (LimelightHelpers.getTV(limelightName)) sub.setRPM(
+                //     sub.calculateRPMWithITM(limelightName, tz),
+                //     sub.rsMotor
+                // );
 
-                if (LimelightHelpers.getTV(limelightName)) sub.setRPM(
-                    sub.calculateRPMWithITM(limelightName, tz), 
-                    sub.rsMotor
-                );
+                // Por ahora se usa velocidad fija como respaldo hasta integrar la visión
+                sub.set(speed);
             }
 
             else sub.set(speed);

@@ -10,6 +10,7 @@ public class Indexer extends Command{
     public Indexer(IntakeSubsystem sub, double speed) {
         this.speed = speed;
         this.sub = sub;
+        addRequirements(sub);
     }
 
     @Override

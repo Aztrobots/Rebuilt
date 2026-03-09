@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(JAVA_HOME=\"C:/Users/canut/wpilib/2026/jdk\" ./gradlew compileJava:*)",
+      "Read(//c/Users/canut/**)",
+      "Bash(cmd.exe:*)",
+      "Bash(powershell:*)"
+    ]
+  }
+}
