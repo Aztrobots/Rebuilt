@@ -16,8 +16,16 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkRelativeEncoder;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
@@ -27,6 +35,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Motores de la intake (NEO brushless vía SPARK MAX, ecosistema REV)
     public SparkMax intakeMotorLeft, intakeMotorRight;
+
+    // Controlador de lazo cerrado y encoder del motor izquierdo (líder)
+    private SparkClosedLoopController closedLoopController;
+    private SparkRelativeEncoder encoder;
 
     // Motor del indexer (TalonFX, ecosistema CTRE)
     public TalonFX indexerMotor;
@@ -41,8 +53,23 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeMotorLeft  = new SparkMax(Ports.Intake.LEFT_SPARK_ID,  MotorType.kBrushless);
         intakeMotorRight = new SparkMax(Ports.Intake.RIGHT_SPARK_ID, MotorType.kBrushless);
 
-        // El motor derecho gira en sentido opuesto al izquierdo
-        intakeMotorRight.setInverted(true);
+        // Configurar motor izquierdo (líder) con PID de posición en Slot 0
+        SparkMaxConfig leaderConfig = new SparkMaxConfig();
+        leaderConfig.closedLoop
+            .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+            .p(0.1, ClosedLoopSlot.kSlot0)
+            .i(0.0, ClosedLoopSlot.kSlot0)
+            .d(0.0, ClosedLoopSlot.kSlot0);
+        intakeMotorLeft.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        // Motor derecho sigue al izquierdo (invertido para giro opuesto)
+        SparkMaxConfig followerConfig = new SparkMaxConfig();
+        followerConfig.follow(intakeMotorLeft, true);
+        intakeMotorRight.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        // Obtener referencias al controlador PID y encoder del líder
+        closedLoopController = intakeMotorLeft.getClosedLoopController();
+        encoder = intakeMotorLeft.getEncoder();
 
         // Indexer (TalonFX en bus RIO)
         indexerMotor = new TalonFX(Ports.Indexer.ID, Ports.RIO_BUS);
@@ -75,10 +102,9 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.getConfigurator().apply(config);
     }
 
-    // Detiene los motores de la intake
+    // Detiene los motores de la intake (solo el líder; el seguidor para automáticamente)
     public void stop() {
         intakeMotorLeft.set(0);
-        intakeMotorRight.set(0);
     }
 
     // Control por voltaje porcentual para un motor TalonFX específico
@@ -91,20 +117,20 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
     }
 
-    // Velocidad directa de ambos motores de la intake (rango -1 a 1)
-    // TODO: velocidad de intake — ajustar si la nota no entra limpia (actualmente 0.75 en StartIntake)
+    // Velocidad directa de la intake (rango -1 a 1); el seguidor copia al líder automáticamente
     public void setSpeed(double speed) {
         intakeMotorLeft.set(speed);
-        intakeMotorRight.set(speed);
     }
 
     public void setWristSpeed(double speed) {}
 
-    // TODO: posicion abajo (0=home) y arriba (1=recoleccion) — medir en robot fisico con transportador
-    public void setPosition(double position) {}
+    // Posición 0 = home (arriba), posición 4 = recolección (abajo)
+    public void setPosition(double position) {
+        closedLoopController.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    }
 
     public double getPosition() {
-        return 0;
+        return encoder.getPosition();
     }
 
     // Velocidad directa del indexer (rango -1 a 1)

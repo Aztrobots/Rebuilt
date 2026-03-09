@@ -128,9 +128,10 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
     
         // --- Piloto 1 (joystick) ---
-        joystick.leftTrigger().whileTrue(new StartIntake(intakeSub, 0.75));
-        joystick.rightBumper().onTrue(new IntakePos(intakeSub, 1));
-        joystick.leftBumper().onTrue(new IntakePos(intakeSub, 0));
+        joystick.rightTrigger().whileTrue(new StartIntake(intakeSub, 0.75));   // absorber
+        joystick.leftTrigger().whileTrue(new StartIntake(intakeSub, -0.75));   // expulsar
+        joystick.rightBumper().onTrue(new IntakePos(intakeSub, 4));            // bajar (recolectar)
+        joystick.leftBumper().onTrue(new IntakePos(intakeSub, 0));             // subir (home)
         joystick.x().whileTrue(new Indexer(intakeSub, 0.5));
         joystick.b().whileTrue(new Indexer(intakeSub, -0.5));
 
