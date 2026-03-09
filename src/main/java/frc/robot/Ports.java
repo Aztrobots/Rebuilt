@@ -132,5 +132,8 @@ public final class Ports {
 
         /** SPARK MAX derecho de la intake. */
         public static final int RIGHT_SPARK_ID = 26;
+
+        public static final int ROLLER_ID = 28;
+
     }
 }
