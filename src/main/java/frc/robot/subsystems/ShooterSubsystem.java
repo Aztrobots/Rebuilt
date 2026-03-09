@@ -239,7 +239,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         return velocity / (2 * Math.PI * Mechanisms.shooterWheelRadius) * 60;
     }
-
+    //Aztech
     /**
      * Verdadero si el motor maestro del shooter está en modo velocidad y dentro de
      * ±150 RPM del setpoint. Tolerancia de 150 RPM: 100 RPM causaba stutter al disparar.
@@ -253,3 +253,4 @@ public class ShooterSubsystem extends SubsystemBase {
         });
     }
 }
+
