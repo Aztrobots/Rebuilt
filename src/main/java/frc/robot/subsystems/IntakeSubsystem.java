@@ -116,7 +116,7 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.getConfigurator().apply(config);
     }
 
-    // Detiene los motores de la intake (solo el líder; el seguidor para automáticamente)
+    // Detiene todos los motores: brazo (líder SparkMax) y rodillo (TalonFX)
     public void stop() {
         intakeMotorLeft.set(0);
         rollerMotor.set(0);
@@ -132,10 +132,16 @@ public class IntakeSubsystem extends SubsystemBase {
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
     }
 
-    // Velocidad directa de la intake (rango -1 a 1); el seguidor copia al líder automáticamente
+    // Velocidad del rodillo Kraken X44 (rango -1 a 1). Solo controla el TalonFX de rollers.
+    // Llamar desde triggers del driver para absorber (+) o expulsar (-).
     public void setSpeed(double speed) {
-        intakeMotorLeft.set(speed);
         rollerMotor.set(speed);
+    }
+
+    // Velocidad directa del brazo (NEO SparkMax líder, rango -1 a 1).
+    // Usar para torque de sostenimiento al finalizar IntakePos, NO para los rodillos.
+    public void setArmSpeed(double speed) {
+        intakeMotorLeft.set(speed);
     }
 
     public void setWristSpeed(double speed) {}

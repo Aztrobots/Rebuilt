@@ -143,8 +143,8 @@ public final class Ports {
         /** SPARK MAX derecho de la intake. */
         public static final int RIGHT_SPARK_ID = 26;
 
-        // TODO: verificar ID 27 con electrónica antes del primer encendido
+        // TODO: verificar ID 28 con electrónica antes del primer encendido
         /** TalonFX (Kraken X44) rodillos de la intake. */
-        public static final int ROLLER_ID = 27;
+        public static final int ROLLER_ID = 28;
     }
 }

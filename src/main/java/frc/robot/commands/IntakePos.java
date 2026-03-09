@@ -26,7 +26,7 @@ public class IntakePos extends Command {
 
     @Override
     public void end(boolean isFinished) {
-        sub.setSpeed(0.025);
+        sub.setArmSpeed(0.025); // torque de sostenimiento contra la gravedad (solo NEOs del brazo)
     }
 
     @Override
