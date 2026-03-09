@@ -5,11 +5,6 @@ package frc.robot;
 /**
  * Centralización de IDs de hardware del robot.
  *
- * En FTC el hardwareMap actúa como registro central de dispositivos: cada subsistema
- * pide su motor/servo por nombre en lugar de hardcodear IDs. Ports cumple el mismo rol
- * en FRC: un solo lugar de verdad para todos los IDs de CAN, evitando colisiones
- * silenciosas cuando dos subsistemas usan el mismo ID en buses distintos.
- *
  * Separación de buses:
  *   - "canivore": bus CAN FD dedicado (CANivore USB-CAN bridge). Soporta 1 Mbit/s vs
  *     los 1 Mbit/s nominales del bus RoboRIO, pero con mayor determinismo y menor latencia.
@@ -17,10 +12,7 @@ package frc.robot;
  *     la latencia de odometría a 250 Hz importa.
  *   - "rio": bus CAN nativo del RoboRIO. Suficiente para mecanismos que no requieren
  *     odometría de alta frecuencia.
- *
- * En FTC no existe este concepto: todos los dispositivos REV comparten el mismo bus RS-485.
- * En FRC, mezclar ecosistemas CTRE y REV en el mismo bus es válido; lo que cambia es
- * el protocolo de configuración (Phoenix Tuner X vs REV Hardware Client).
+
  */
 public final class Ports {
 
@@ -36,7 +28,7 @@ public final class Ports {
     public static final class Swerve {
 
         // --- Módulo Frontal Izquierdo (FL) ---
-
+        //Aztech
         /** TalonFX que controla la tracción FL; recibe VelocityVoltage/VoltageOut. */
         public static final int FL_DRIVE_ID = 1;
 
@@ -44,8 +36,7 @@ public final class Ports {
         public static final int FL_STEER_ID = 2;
 
         /**
-         * CANcoder absoluto del módulo FL. A diferencia de los encoders de cuadratura
-         * de FTC, el CANcoder persiste la posición absoluta al encender → no se necesita
+         * El CANcoder persiste la posición absoluta al encender → no se necesita
          * rutina de homing.
          */
         public static final int FL_CANCODER_ID = 3;
@@ -103,7 +94,6 @@ public final class Ports {
         /**
          * TalonFX rueda disparadora izquierda. TalonFX ≈ Motor + SparkMax + encoder
          * todo en uno; la configuración se hace vía Configurator en código o Tuner X,
-         * no con un objeto separado como en REV.
          */
         public static final int LEFT_ID = 20;
 
@@ -124,11 +114,11 @@ public final class Ports {
         public static final int RIGHT_ID = 23;
     }
 
-    public static final class Indexer {
-
-        /** TalonFX del indexer/feeder: transporta la nota desde la intake hasta las ruedas de disparo. */
-        public static final int ID = 24;
-    }
+    /**
+     * TalonFX del indexer/feeder: transporta la nota desde la intake hasta las
+     * ruedas de disparo. Vive en el bus rio porque no requiere lazo de odometría.
+     */
+    public static final int INDEXER_ID = 24;
 
     public static final class Intake {
 
@@ -142,9 +132,5 @@ public final class Ports {
 
         /** SPARK MAX derecho de la intake. */
         public static final int RIGHT_SPARK_ID = 26;
-
-        // TODO: verificar ID 28 con electrónica antes del primer encendido
-        /** TalonFX (Kraken X44) rodillos de la intake. */
-        public static final int ROLLER_ID = 28;
     }
 }

@@ -12,13 +12,6 @@ import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
 /**
- * VisionSubsystem — Fusión de pose con Limelight y odometría del swerve.
- *
- * Este subsistema sigue el patrón de "sensor fusion": combinar múltiples
- * fuentes de información para obtener una estimación más precisa de la posición
- * del robot. Es equivalente a lo que en FTC se hace combinando encoders + IMU,
- * pero aquí añadimos una cámara (Limelight) que detecta AprilTags y corrige
- * la odometría mediante un filtro de Kalman interno de WPILib/CTRE.
  *
  * Flujo:
  *   Odometría (encoders + giroscopio) → estimación base
@@ -132,9 +125,6 @@ public class VisionSubsystem extends SubsystemBase {
         // cuánto "mueve" la estimación hacia la medición de la cámara vs mantener
         // la odometría. Desviación alta = la cámara pesa menos.
         //
-        // Analogía FTC: es como ajustar el "weight" de la cámara vs encoders
-        // en un filtro complementario: si la cámara está lejos y ruidosa, le
-        // damos menos peso.
         var stdDevs = (estimate.avgTagDist <= NEAR_TAG_DIST_METERS)
             ? VecBuilder.fill(NEAR_STD_X, NEAR_STD_Y, NEAR_STD_THETA)
             : VecBuilder.fill(FAR_STD_X,  FAR_STD_Y,  FAR_STD_THETA);

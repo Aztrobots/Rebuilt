@@ -24,6 +24,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.Ports;
@@ -48,6 +49,12 @@ public class ShooterSubsystem extends SubsystemBase {
     // MotionMagicVoltage: perfil de movimiento trapezoidal para el pivote del hood.
     // Equivalente a RUN_TO_POSITION de FTC pero con límites de velocidad y aceleración configurables.
     private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0).withSlot(0);
+
+    // Tabla de interpolación distancia→RPM. Puede editarse desde SmartDashboard (ShooterTable/).
+    private final InterpolatingDoubleTreeMap itm = new InterpolatingDoubleTreeMap();
+
+    // Último setpoint de RPM enviado al shooter (publicado en SmartDashboard como TargetRPM).
+    private double targetRPM = 0;
 
     // Solo el maestro del shooter; lsMotor (follower) no recibe comandos directos.
     // isVelocityWithinTolerance() solo tiene sentido verificar el motor maestro.
@@ -179,6 +186,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * Se pasa el motor explícitamente para permitir control individual (ej. solo rsMotor).
      */
     public void setRPM(double rpm, TalonFX motor) {
+        targetRPM = rpm;
         motor.setControl(velVol.withVelocity(RPM.of(rpm)));
     }
 
@@ -239,6 +247,18 @@ public class ShooterSubsystem extends SubsystemBase {
 
         return velocity / (2 * Math.PI * Mechanisms.shooterWheelRadius) * 60;
     }
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("ShooterRPM", lsMotor.getVelocity().getValueAsDouble() * 60);
+        SmartDashboard.putNumber("TargetRPM", targetRPM);
+
+        for (int i = 1; i <= 5; i++) {
+            double dist = SmartDashboard.getNumber("ShooterTable/Dist_" + i, i * 1.0);
+            double rpm  = SmartDashboard.getNumber("ShooterTable/RPM_"  + i, i * 500.0);
+            itm.put(dist, rpm);
+        }
+    }
+
     //Aztech
     /**
      * Verdadero si el motor maestro del shooter está en modo velocidad y dentro de

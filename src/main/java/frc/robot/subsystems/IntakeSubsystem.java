@@ -28,6 +28,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 
@@ -114,6 +115,11 @@ public class IntakeSubsystem extends SubsystemBase {
             );
 
         motor.getConfigurator().apply(config);
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Intake/EncoderPos", getPosition());
     }
 
     // Detiene todos los motores: brazo (líder SparkMax) y rodillo (TalonFX)
