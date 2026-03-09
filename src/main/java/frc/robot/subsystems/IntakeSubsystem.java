@@ -16,14 +16,15 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkRelativeEncoder;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -38,7 +39,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Controlador de lazo cerrado y encoder del motor izquierdo (líder)
     private SparkClosedLoopController closedLoopController;
-    private SparkRelativeEncoder encoder;
+    private RelativeEncoder encoder;
 
     // Motor del indexer (TalonFX, ecosistema CTRE)
     public TalonFX indexerMotor;
@@ -56,7 +57,7 @@ public class IntakeSubsystem extends SubsystemBase {
         // Configurar motor izquierdo (líder) con PID de posición en Slot 0
         SparkMaxConfig leaderConfig = new SparkMaxConfig();
         leaderConfig.closedLoop
-            .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
             .p(0.1, ClosedLoopSlot.kSlot0)
             .i(0.0, ClosedLoopSlot.kSlot0)
             .d(0.0, ClosedLoopSlot.kSlot0);
@@ -126,7 +127,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Posición 0 = home (arriba), posición 4 = recolección (abajo)
     public void setPosition(double position) {
-        closedLoopController.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        closedLoopController.setSetpoint(position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
     }
 
     public double getPosition() {
