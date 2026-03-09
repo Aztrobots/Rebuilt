@@ -41,6 +41,9 @@ public class IntakeSubsystem extends SubsystemBase {
     private SparkClosedLoopController closedLoopController;
     private RelativeEncoder encoder;
 
+    // Motor de rodillos de la intake (Kraken X44 TalonFX, ecosistema CTRE)
+    public TalonFX rollerMotor;
+
     // Motor del indexer (TalonFX, ecosistema CTRE)
     public TalonFX indexerMotor;
 
@@ -71,6 +74,16 @@ public class IntakeSubsystem extends SubsystemBase {
         // Obtener referencias al controlador PID y encoder del líder
         closedLoopController = intakeMotorLeft.getClosedLoopController();
         encoder = intakeMotorLeft.getEncoder();
+
+        // Rodillos de la intake (Kraken X44 TalonFX en bus RIO)
+        rollerMotor = new TalonFX(Ports.Intake.ROLLER_ID, Ports.RIO_BUS);
+        rollerMotor.getConfigurator().apply(
+            new TalonFXConfiguration()
+                .withMotorOutput(
+                    new MotorOutputConfigs()
+                        .withNeutralMode(NeutralModeValue.Coast)
+                )
+        );
 
         // Indexer (TalonFX en bus RIO)
         indexerMotor = new TalonFX(Ports.Indexer.ID, Ports.RIO_BUS);
@@ -106,6 +119,7 @@ public class IntakeSubsystem extends SubsystemBase {
     // Detiene los motores de la intake (solo el líder; el seguidor para automáticamente)
     public void stop() {
         intakeMotorLeft.set(0);
+        rollerMotor.set(0);
     }
 
     // Control por voltaje porcentual para un motor TalonFX específico
@@ -121,6 +135,7 @@ public class IntakeSubsystem extends SubsystemBase {
     // Velocidad directa de la intake (rango -1 a 1); el seguidor copia al líder automáticamente
     public void setSpeed(double speed) {
         intakeMotorLeft.set(speed);
+        rollerMotor.set(speed);
     }
 
     public void setWristSpeed(double speed) {}
