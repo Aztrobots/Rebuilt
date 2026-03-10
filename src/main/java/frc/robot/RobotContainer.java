@@ -175,6 +175,22 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return Commands.print("No autonomous command configured");
     }
+
+    public void updateCANTelemetry() {
+        m_canManager.update();
+    }
+
+    public void updatePowerTelemetry() {
+    m_powerManager.update();
+
+    }
+    public void updateTelemetry() {
+        m_errorManager.update();
+    }
+
+    public void logRobotError(String msg) {
+        m_errorManager.addLog(msg, true);
+    }
     
     public boolean isHubActive() {
         Optional<Alliance> alliance = DriverStation.getAlliance();

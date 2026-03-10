@@ -128,10 +128,10 @@ public final class Ports {
          * y no es compatible con Phoenix Tuner X — usar REV Hardware Client para
          * diagnóstico y flasheo de firmware.
          */
-        public static final int LEFT_SPARK_ID = 25;
+        public static final int LEFT_SPARK_ID = 18;
 
         /** SPARK MAX derecho de la intake. */
-        public static final int RIGHT_SPARK_ID = 26;
+        public static final int RIGHT_SPARK_ID = 15;
 
         public static final int ROLLER_ID = 28;
 
