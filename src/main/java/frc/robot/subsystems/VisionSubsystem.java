@@ -50,7 +50,7 @@ public class VisionSubsystem extends SubsystemBase {
      * Crea el subsistema de visión.
      *
      * @param drivetrain   El swerve drivetrain al que se añadirán las mediciones.
-     * @param limelightName Nombre de la Limelight (ej. "limelight", "limelight2").
+     * @param limelightName Nombre de la Limelight (ej. {@code Constants.Limelights.shooterLimelightName}).
      */
     public VisionSubsystem(CommandSwerveDrivetrain drivetrain, String limelightName) {
         this.drivetrain = drivetrain;

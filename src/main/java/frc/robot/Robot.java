@@ -73,11 +73,11 @@ public class Robot extends TimedRobot {
 public void updateVisionDashboard() {
     // 1. Obtener la pose del objetivo relativa a la cámara (Camera Space)
     // El arreglo contiene: [x, y, z, roll, pitch, yaw]
-    double[] targetPose = LimelightHelpers.getTargetPose_CameraSpace("limelight");
+    double[] targetPose = LimelightHelpers.getTargetPose_CameraSpace(Constants.Limelights.shooterLimelightName);
 
     // 2. Validación de seguridad (si no hay target, el arreglo suele estar vacío o en 0)
     // tv es 1 si la Limelight ve un objetivo
-    boolean hasTarget = LimelightHelpers.getTV("limelight");
+    boolean hasTarget = LimelightHelpers.getTV(Constants.Limelights.shooterLimelightName);
 
     if (hasTarget && targetPose.length >= 3) {
         // Extraemos las coordenadas 3D (en metros)
@@ -88,17 +88,17 @@ public void updateVisionDashboard() {
         // 3. LA FÓRMULA MAESTRA: Distancia Euclidiana 3D
         // Calcula la línea recta real desde el lente hasta el AprilTag
         double distance = Math.sqrt(
-            Math.pow(x, 2) + 
-            Math.pow(y, 2) + 
+            Math.pow(x, 2) +
+            Math.pow(y, 2) +
             Math.pow(z, 2)
         );
 
         // 4. Publicar al Widget (Llave: "TargetDistance")
         SmartDashboard.putNumber("TargetDistance", distance);
-        
+
         // Opcional: Publicar TX para que el radar del widget se mueva
-        SmartDashboard.putNumber("TargetTX", LimelightHelpers.getTX("limelight"));
-        
+        SmartDashboard.putNumber("TargetTX", LimelightHelpers.getTX(Constants.Limelights.shooterLimelightName));
+
     } else {
         // Si no hay target, mandamos 0 para que el widget muestre "---"
         SmartDashboard.putNumber("TargetDistance", 0.0);

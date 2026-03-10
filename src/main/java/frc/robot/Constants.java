@@ -24,7 +24,6 @@ public class Constants {
     public class Limelights {
 
         public static final String shooterLimelightName = "limelight";
-        public static final String extraLimelightName = "limelight2";
 
         public class AprilTagLimits {
             public static final double XError = 0.0;
